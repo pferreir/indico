@@ -108,3 +108,11 @@ class Track(DescriptionMixin, db.Model):
 
     def can_delete(self, user):
         return self.event_new.can_manage(user) and not self.abstracts_accepted
+
+    def is_user_reviewer(self, user):
+        """Test whether a user can review abstracts in the current Track."""
+        return (user in self.abstract_reviewers) or (user in self.event_new.global_abstract_reviewers)
+
+    def is_user_convener(self, user):
+        """Test whether a user is a convener of the track or of the event as a whole."""
+        return (user in self.conveners) or (user in self.event_new.global_conveners)

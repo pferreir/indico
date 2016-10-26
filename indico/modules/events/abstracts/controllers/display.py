@@ -16,27 +16,23 @@
 
 from __future__ import unicode_literals
 
-from indico.modules.events.abstracts.controllers.base import AbstractMixin
-from indico.modules.events.abstracts.views import WPDisplayAbstracts
+from indico.modules.events.abstracts.controllers.reviewing import AbstractPageMixin
 from indico.util.fs import secure_filename
 from indico.web.flask.util import send_file
 from MaKaC.PDFinterface.conference import AbstractToPDF
 from MaKaC.webinterface.rh.conferenceDisplay import RHConferenceBaseDisplay
 
 
-class RHDisplayAbstract(AbstractMixin, RHConferenceBaseDisplay):
-    CSRF_ENABLED = True
+class RHDisplayAbstract(AbstractPageMixin, RHConferenceBaseDisplay):
+    management = False
 
     def _checkParams(self, params):
         RHConferenceBaseDisplay._checkParams(self, params)
-        AbstractMixin._checkParams(self)
+        AbstractPageMixin._checkParams(self)
 
     def _checkProtection(self):
         RHConferenceBaseDisplay._checkProtection(self)
-        AbstractMixin._checkProtection(self)
-
-    def _process(self):
-        return WPDisplayAbstracts.render_template('abstract.html', self._conf, abstract=self.abstract, management=False)
+        AbstractPageMixin._checkProtection(self)
 
 
 class RHDisplayAbstractExportPDF(RHDisplayAbstract):

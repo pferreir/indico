@@ -24,10 +24,10 @@ from flask import redirect, flash, jsonify, request, session
 
 from indico.modules.events.abstracts import logger
 from indico.modules.events.abstracts.controllers.base import AbstractMixin
+from indico.modules.events.abstracts.controllers.reviewing import AbstractPageMixin
 from indico.modules.events.abstracts.forms import (BOASettingsForm, AbstractSubmissionSettingsForm,
                                                    AbstractReviewingRolesForm, AbstractReviewingSettingsForm,
-                                                   AbstractsScheduleForm, AbstractJudgmentForm,
-                                                   BulkAbstractJudgmentForm)
+                                                   AbstractsScheduleForm, BulkAbstractJudgmentForm)
 from indico.modules.events.abstracts.models.abstracts import Abstract, AbstractState
 from indico.modules.events.abstracts.models.persons import AbstractPersonLink
 from indico.modules.events.abstracts.models.review_ratings import AbstractReviewRating
@@ -91,18 +91,19 @@ class RHManageAbstractsActionsBase(RHAbstractListBase):
         self.abstracts = Abstract.query.with_parent(self.event_new).filter(Abstract.id.in_(ids)).all()
 
 
-class RHManageAbstract(RHManageAbstractBase):
+class RHManageAbstract(AbstractPageMixin, RHConferenceModifBase):
     """Display abstract management page"""
 
-    def _process(self):
-        form = AbstractJudgmentForm(abstract=self.abstract)
-        if form.process_ajax():
-            return form.ajax_response
-        elif form.validate_on_submit():
-            judgment_data, abstract_data = form.split_data
-            judge_abstract(self.abstract, abstract_data, judge=session.user, **judgment_data)
-        return WPManageAbstracts.render_template('abstract.html', self._conf, abstract=self.abstract,
-                                                 form=form)
+    CSRF_ENABLED = True
+    management = True
+
+    def _checkProtection(self):
+        RHConferenceModifBase._checkProtection(self)
+        AbstractPageMixin._checkProtection(self)
+
+    def _checkParams(self, params):
+        RHConferenceModifBase._checkParams(self, params)
+        AbstractPageMixin._checkParams(self)
 
 
 class RHBulkAbstractJudgment(RHManageAbstractsActionsBase):

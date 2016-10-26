@@ -1,3 +1,4 @@
+{% from 'forms/_form.html' import form_header, form_rows, form_footer %}
 {% from 'events/abstracts/abstract/_common.html' import render_edited_hint %}
 
 {% macro render_abstract_reviews(abstract) %}
@@ -22,6 +23,47 @@
                 {% endfor %}
             {% endif %}
         {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro render_review_boxes(abstract, review_forms) %}
+    {% for track in abstract.reviewed_for_tracks|sort(attribute='title')
+       if track.is_user_reviewer(session.user) %}
+        <div id="abstract-review-box-{{ track.id }}" class="i-timeline-item">
+            {{ render_review_box(review_forms[track.id], abstract, track) }}
+        </div>
+    {% endfor %}
+{% endmacro %}
+
+{% macro render_review_box(form, abstract, track) %}
+    <div class="i-timeline-item-label action icon-checkmark"></div>
+    <div class="i-timeline-item-box content-indicator">
+        <div class="i-box-content">
+            <div class="flex">
+                <div class="stretch">
+                    <strong>
+                        {% trans track_title=track.title -%}
+                            Review for track "{{ track_title }}"
+                        {%- endtrans %}
+                    </strong>
+                </div>
+            </div>
+        </div>
+        <div class="i-box-footer">
+            {{ form_header(form, orientation='vertical', id=('track-review-form-' + track.id|string)) }}
+            {{ form_rows(form, skip=('comment', 'proposed_action')) }}
+            {{ form_rows(form, fields=('comment', 'proposed_action')) }}
+            {% set form_id = '#track-review-form-' + track.id|string %}
+            {% call form_footer(form, skip_label=skip_labels) %}
+                <button class="i-button big highlight"
+                        data-update="#abstract-review-box-{{ track.id }}"
+                        data-params-selector='{{ form_id }} select, {{ form_id }} input[type="radio"]:checked, {{ form_id }} input[type="hidden"], {{ form_id }} textarea'
+                        data-method="POST"
+                        data-href="{{ url_for('.review_abstract', abstract, track) }}">
+                    {% trans %}Review{% endtrans%}
+                </button>
+            {% endcall %}
+        </div>
     </div>
 {% endmacro %}
 
@@ -69,9 +111,9 @@
 
 {% macro _render_rating(cfa, value) %}
     <span class="rating">
-    {% for bullet in range(cfa.rating_range[0], cfa.rating_range[1]) %}
+    {%- for bullet in range(cfa.rating_range[0], cfa.rating_range[1]) -%}
         <span class="bullet {{ 'full' if bullet < value else '' }}"></span>
-    {% endfor %}
+    {%- endfor -%}
     </span>
 {% endmacro %}
 
@@ -107,7 +149,7 @@
                 </div>
             </div>
             {% if review.ratings %}
-                {% for rating in review.ratings %}
+                {% for rating in review.ratings|sort(attribute='question.position') %}
                     <ul class="abstract-question-list">
                         <li>
                             <label>{{ rating.question.text }}</label>

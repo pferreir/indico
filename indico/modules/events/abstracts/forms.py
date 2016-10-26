@@ -195,6 +195,17 @@ class AbstractJudgmentForm(AbstractJudgmentFormBase):
         super(AbstractJudgmentForm, self).__init__(*args, **kwargs)
 
 
+class AbstractReviewForm(IndicoForm):
+    """Form for judging an abstract"""
+
+    comment = TextAreaField(_("Comments"))
+    proposed_action = IndicoEnumSelectField(_("Proposed Action"), [DataRequired()], enum=AbstractAction,
+                                            skip={AbstractAction.change_tracks})
+
+    def __init__(self, *args, **kwargs):
+        super(AbstractReviewForm, self).__init__(*args, **kwargs)
+
+
 class BulkAbstractJudgmentForm(AbstractJudgmentFormBase):
     judgment = HiddenEnumField(enum=AbstractAction, skip={AbstractAction.change_tracks})
     abstract_id = HiddenFieldList()

@@ -74,8 +74,10 @@
                 {% endfor %}
             </div>
             <div class="i-box-footer">
-                {{ simple_form(form, back_button=false, skip_labels=true, submit=_("Judge"),
-                               disabled_until_change=false, form_header_kwargs={'orientation': 'vertical'}) }}
+                {{ simple_form(form, skip_labels=true, submit=_("Judge"),
+                               disabled_until_change=false,
+                               form_header_kwargs={'orientation': 'vertical',
+                                                   'action': url_for('.judge_abstract', abstract)}) }}
             </div>
         </div>
     </div>

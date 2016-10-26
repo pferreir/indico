@@ -32,7 +32,8 @@ from indico.modules.events.abstracts.controllers.management import (RHAbstracts,
                                                                     RHScheduleCFA, RHOpenCFA, RHCloseCFA,
                                                                     RHManageReviewingRoles, RHResetAbstractJudgment,
                                                                     RHBulkAbstractJudgment)
-from indico.modules.events.abstracts.controllers.reviewing import RHAbstractsDownloadAttachment
+from indico.modules.events.abstracts.controllers.reviewing import (RHAbstractsDownloadAttachment,
+                                                                   RHReviewAbstractForTrack, RHJudgeAbstract)
 from indico.web.flask.wrappers import IndicoBlueprint
 
 _bp = IndicoBlueprint('abstracts', __name__, url_prefix='/event/<confId>', template_folder='templates',
@@ -90,3 +91,6 @@ _bp.add_url_rule('/manage/abstracts/<int:abstract_id>/', 'manage_abstract', RHMa
 _bp.add_url_rule('/manage/abstracts/<int:abstract_id>/reset',
                  'reset_abstract_judgment', RHResetAbstractJudgment, methods=('POST',))
 _bp.add_url_rule('/manage/abstracts/<int:abstract_id>/abstract.pdf', 'manage_abstract_pdf_export', RHAbstractExportPDF)
+_bp.add_url_rule('/manage/abstracts/<int:abstract_id>/review/track/<int:track_id>', 'review_abstract',
+                 RHReviewAbstractForTrack, methods=('POST',))
+_bp.add_url_rule('/manage/abstracts/<int:abstract_id>/judge', 'judge_abstract', RHJudgeAbstract, methods=('POST',))

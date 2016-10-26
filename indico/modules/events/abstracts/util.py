@@ -35,6 +35,7 @@ from indico.util.i18n import _
 from indico.util.spreadsheets import unique_col
 from indico.util.string import to_unicode
 from indico.web.flask.templating import get_template_module
+from indico.web.forms.widgets import JinjaWidget
 
 
 class AbstractListGenerator(ListGeneratorBase):
@@ -371,3 +372,27 @@ def get_roles_for_event(event):
     roles['*']['reviewer'] = [reviewer.id for reviewer in event.global_abstract_reviewers]
     roles['*']['convener'] = [reviewer.id for reviewer in event.global_conveners]
     return roles
+
+
+def make_review_form(event):
+    """Extends the abstract WTForm to add the extra fields.
+
+    Each extra field will use a field named ``custom_ID``.
+
+    :param event: The `Event` for which to create the abstract form.
+    :return: An `AbstractForm` subclass.
+    """
+    from wtforms.fields import RadioField
+    from wtforms.validators import DataRequired
+    from indico.modules.events.abstracts.forms import AbstractReviewForm
+
+    form_class = type(b'_AbstractForm', (AbstractReviewForm,), {})
+    for question in event.abstract_review_questions:
+        name = 'question_{}'.format(question.id)
+        range_ = event.cfa.rating_range
+        field = RadioField(question.text,
+                           validators=[DataRequired()],
+                           choices=[(unicode(n), unicode(n)) for n in range(range_[0], range_[1] + 1)],
+                           widget=JinjaWidget('events/abstracts/forms/rating_widget.html', question=question, cfa=event.cfa))
+        setattr(form_class, name, field)
+    return form_class

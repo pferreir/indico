@@ -75,6 +75,10 @@ class AbstractReviewQuestion(db.Model):
     # relationship backrefs:
     # - ratings (AbstractReviewRating.question)
 
+    def get_review_rating(self, review):
+        results = [rating for rating in review.ratings if rating.question == self]
+        return results[0] if results else None
+
     @return_ascii
     def __repr__(self):
         return format_repr(self, 'id', 'event_id', no_score=False, is_deleted=False, _text=self.text)

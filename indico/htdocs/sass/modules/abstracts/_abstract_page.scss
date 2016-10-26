@@ -207,6 +207,20 @@
     }
 }
 
+%rating-bullet {
+    display: inline-block;
+    vertical-align: middle;
+    width: 0.8em;
+    height: 1.2em;
+    margin-right: 0.2em;
+    border-radius: 1em;
+    background-color: $pastel-gray;
+}
+
+%rating-bullet-selected {
+    background-color: $blue;
+}
+
 .abstract-question-list {
     list-style-type: none;
 
@@ -229,17 +243,37 @@
 
             .rating {
                 .bullet {
-                    display: inline-block;
-                    vertical-align: middle;
-                    width: 0.5em;
-                    height: 1em;
-                    border-radius: 1em;
-                    background-color: $pastel-gray;
-
+                    @extend %rating-bullet;
                     &.full {
-                        background-color: $pastel-green;
+                        @extend %rating-bullet-selected;
                     }
                 }
             }
         }
+    }
+}
+
+.rating-widget {
+    user-select: none;
+    display: flex;
+    flex-direction: row-reverse;
+
+    input[type="radio"] {
+        display: none;
+
+        &:checked ~ label.bullet {
+            @extend %rating-bullet-selected;
+        }
+    }
+    .bullet {
+        cursor: pointer;
+        @extend %rating-bullet;
+    }
+
+    .rating-value {
+        margin-left: 0.25em;
+        font-size: 1.2em;
+        line-height: 1.1;
+        width: 0.5em;ß
+    }
 }

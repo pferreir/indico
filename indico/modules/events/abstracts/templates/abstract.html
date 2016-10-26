@@ -2,7 +2,7 @@
 
 {% from 'events/abstracts/abstract/public.html' import render_abstract_public %}
 {% from 'events/abstracts/abstract/judge.html' import render_decision_box %}
-{% from 'events/abstracts/abstract/review.html' import render_abstract_reviews, render_abstract_comments %}
+{% from 'events/abstracts/abstract/review.html' import render_abstract_reviews, render_abstract_comments, render_review_boxes %}
 
 {% block content %}
     {{ render_abstract_public(abstract, management=management) }}
@@ -22,8 +22,12 @@
             <div class="i-timetable-connect-up"></div>
         {% endif %}
 
+        {% if can_review %}
+            {{ render_review_boxes(abstract, review_forms) }}
+        {% endif %}
+
         {% if can_judge %}
-            {{ render_decision_box(abstract, form) }}
+            {{ render_decision_box(abstract, judgement_form) }}
         {% endif %}
     </div>
 {% endblock %}
