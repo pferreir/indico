@@ -17,9 +17,19 @@
 from __future__ import unicode_literals
 
 from indico.core.db import db
-from indico.core.db.sqlalchemy import UTCDateTime
+from indico.core.db.sqlalchemy import PyIntEnum, UTCDateTime
 from indico.util.date_time import now_utc
 from indico.util.string import format_repr, return_ascii, text_to_repr
+from indico.util.struct.enum import IndicoEnum
+
+
+class AbstractCommentVisibility(int, IndicoEnum):
+    """Most to least restrictive visibility for abstract comments"""
+    judges = 1
+    conveners = 2
+    reviewers = 3
+    submitters = 4
+    public = 5
 
 
 class AbstractComment(db.Model):
@@ -61,6 +71,11 @@ class AbstractComment(db.Model):
     modified_dt = db.Column(
         UTCDateTime,
         nullable=True
+    )
+    visibility = db.Column(
+        PyIntEnum(AbstractCommentVisibility),
+        nullable=False,
+        default=AbstractCommentVisibility.judges
     )
     is_deleted = db.Column(
         db.Boolean,
