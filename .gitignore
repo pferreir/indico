@@ -36,3 +36,6 @@ htmlcov/
 
 # logs
 *.log
+
+# webpack
+config.json
