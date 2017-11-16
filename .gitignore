@@ -24,6 +24,7 @@ node_modules
 # IDE files
 .idea/
 *.sublime-*
+.vscode/
 
 # testing
 .coverage
