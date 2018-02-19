@@ -40,7 +40,7 @@ function _resolveTheme(rootPath, indicoClientPath, filePath) {
 
 export function getThemeEntryPoints(config, prefix) {
     const themes = config.themes;
-    const indicoClientPath = path.join(config.build.clientPath, 'styles');
+    const indicoClientPath = path.join(config.indico.build.clientPath, 'styles');
     const rootPath = path.join(config.build.rootPath);
 
     return Object.assign(...Object.keys(themes).map((k) => {
