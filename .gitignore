@@ -40,4 +40,4 @@ htmlcov/
 *.log
 
 # webpack
-config.json
+webpack-build-config.json
