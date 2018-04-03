@@ -19,9 +19,9 @@ import os
 from flask import Response, current_app, redirect, send_from_directory
 from werkzeug.exceptions import NotFound
 
+import indico
 from indico.core.config import config
 from indico.core.plugins import plugin_engine
-from indico.util.string import crc32
 from indico.web.assets.vars_js import generate_global_file, generate_i18n_file, generate_user_file
 from indico.web.flask.util import send_file, url_for
 from indico.web.flask.wrappers import IndicoBlueprint
@@ -64,7 +64,7 @@ def js_vars_global():
     Provides a JS file with global definitions (all users)
     Useful for server-wide config options, URLs, etc...
     """
-    cache_file = os.path.join(config.CACHE_DIR, 'assets_global_{}.js'.format(config.hash))
+    cache_file = os.path.join(config.CACHE_DIR, 'assets_global_{}_{}.js'.format(indico.__version__, config.hash))
 
     if not os.path.exists(cache_file):
         data = generate_global_file()
@@ -85,19 +85,27 @@ def js_vars_user():
 
 @assets_blueprint.route('/i18n/<locale_name>.js')
 def i18n_locale(locale_name):
-    """
-    Retrieve a locale in a Jed-compatible format
-    """
+    return _get_i18n_locale(locale_name)
 
-    plugin_key = ','.join(sorted(plugin_engine.get_active_plugins()))
-    cache_file = os.path.join(config.CACHE_DIR, 'assets_i18n_{}_{}.js'.format(locale_name, crc32(plugin_key)))
+
+@assets_blueprint.route('/i18n/<locale_name>-react.js')
+def i18n_locale_react(locale_name):
+    return _get_i18n_locale(locale_name, react=True)
+
+
+def _get_i18n_locale(locale_name, react=False):
+    """Retrieve a locale in a Jed-compatible format"""
+
+    react_suffix = '-react' if react else ''
+    cache_file = os.path.join(config.CACHE_DIR, 'assets_i18n_{}{}_{}_{}.js'.format(
+        locale_name, react_suffix, indico.__version__, config.hash))
 
     if not os.path.exists(cache_file):
-        i18n_data = generate_i18n_file(locale_name)
+        i18n_data = generate_i18n_file(locale_name, react=react)
         with open(cache_file, 'wb') as f:
-            f.write("window.TRANSLATIONS = {};".format(i18n_data))
+            f.write("window.{} = {};".format('REACT_TRANSLATIONS' if react else 'TRANSLATIONS', i18n_data))
 
-    return send_file('{}.js'.format(locale_name), cache_file, mimetype='application/javascript',
+    return send_file('{}{}.js'.format(locale_name, react_suffix), cache_file, mimetype='application/javascript',
                      no_cache=False, conditional=True)
 
 
