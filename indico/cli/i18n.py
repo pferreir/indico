@@ -16,8 +16,10 @@
 
 from __future__ import unicode_literals
 
+import json
 import os
 import re
+import subprocess
 import sys
 from distutils.dist import Distribution
 from functools import wraps
@@ -26,14 +28,12 @@ from pkgutil import walk_packages
 import click
 from babel.messages import frontend
 from babel.messages.pofile import read_po
-from flask import current_app
 from flask.helpers import get_root_path
 
-from indico.cli.core import cli_group
 from indico.util.console import cformat
 
 
-@cli_group()
+@click.group()
 def cli():
     os.chdir(os.path.join(get_root_path('indico'), '..'))
 
@@ -41,10 +41,10 @@ def cli():
 TRANSLATIONS_DIR = 'indico/translations'
 MESSAGES_POT = os.path.join(TRANSLATIONS_DIR, 'messages.pot')
 MESSAGES_JS_POT = os.path.join(TRANSLATIONS_DIR, 'messages-js.pot')
+MESSAGES_REACT_POT = os.path.join(TRANSLATIONS_DIR, 'messages-react.pot')
 
 DEFAULT_OPTIONS = {
     'init_catalog': {
-        'output_file': MESSAGES_POT,
         'output_dir': TRANSLATIONS_DIR
     },
     'extract_messages': {
@@ -65,7 +65,6 @@ DEFAULT_OPTIONS = {
 
     # JavaScript
     'init_catalog_js': {
-        'output_file': MESSAGES_JS_POT,
         'output_dir': TRANSLATIONS_DIR,
         'domain': 'messages-js'
     },
@@ -80,7 +79,18 @@ DEFAULT_OPTIONS = {
         'input_file': MESSAGES_JS_POT,
         'output_dir': TRANSLATIONS_DIR,
         'domain': 'messages-js'
-    }
+    },
+
+    # JavaScript / React
+    'init_catalog_react': {
+        'output_dir': TRANSLATIONS_DIR,
+        'domain': 'messages-react'
+    },
+    'update_catalog_react': {
+        'input_file': MESSAGES_REACT_POT,
+        'output_dir': TRANSLATIONS_DIR,
+        'domain': 'messages-react'
+    },
 }
 
 
@@ -113,14 +123,8 @@ def wrap_distutils_command(command_class):
     return _wrapper
 
 
-cmd_list = ['init_catalog', 'extract_messages', 'update_catalog']
-cmd_list += [cmd + '_js' for cmd in cmd_list]
-cmd_list.append('compile_catalog')
-
-
-for cmd_name in cmd_list:
-    cmd_class = getattr(frontend, re.sub(r'_js$', '', cmd_name))
-
+def _make_command(cmd_name):
+    cmd_class = getattr(frontend, re.sub(r'_(js|react)$', '', cmd_name))
     cmd = click.command(cmd_name)(wrap_distutils_command(cmd_class))
     for opt, short_opt, description in cmd_class.user_options:
         long_opt_name = opt.rstrip('=')
@@ -133,8 +137,37 @@ for cmd_name in cmd_list:
         default = DEFAULT_OPTIONS.get(cmd_name, {}).get(var_name)
         is_flag = not opt.endswith('=')
         cmd = click.option(*(opts + [var_name]), is_flag=is_flag, default=default, help=description)(cmd)
+    return cmd
 
-    cli.add_command(cmd)
+
+cmd_list = ['init_catalog', 'extract_messages', 'update_catalog', 'compile_catalog',
+            'init_catalog_js', 'extract_messages_js', 'update_catalog_js',
+            'init_catalog_react', 'update_catalog_react']
+
+
+for cmd_name in cmd_list:
+    cli.add_command(_make_command(cmd_name))
+
+
+@cli.command()
+def extract_messages_react():
+    output = subprocess.check_output(['npx', 'react-jsx-i18n', 'extract', '--ext', 'jsx',
+                                      'indico/web/client/', 'indico/modules/'])
+    with open(MESSAGES_REACT_POT, 'wb') as f:
+        f.write(output)
+
+
+@cli.command()
+def compile_catalog_react():
+    for locale in os.listdir(TRANSLATIONS_DIR):
+        po_file = os.path.join(TRANSLATIONS_DIR, locale, 'LC_MESSAGES', 'messages-react.po')
+        json_file = os.path.join(TRANSLATIONS_DIR, locale, 'LC_MESSAGES', 'messages-react.json')
+        if not os.path.exists(po_file):
+            continue
+        output = subprocess.check_output(['npx', 'react-jsx-i18n', 'compile', po_file])
+        json.loads(output)  # just to be sure the JSON is valid
+        with open(json_file, 'wb') as f:
+            f.write(output)
 
 
 @cli.command()
@@ -145,7 +178,7 @@ def check_format_strings():
     ``{error}`` but the translation uses ``{erro}``, resulting
     in errors when using the translated string.
     """
-    root_path = os.path.join(current_app.root_path, 'translations')
+    root_path = 'indico/translations'
     paths = set()
     for root, dirs, files in os.walk(root_path):
         for file in files:
