@@ -14,7 +14,7 @@ from werkzeug.exceptions import BadRequest
 from indico.core import signals
 from indico.core.db import db
 from indico.core.db.sqlalchemy.core import handle_sqlalchemy_database_error
-from indico.core.notifications import flush_email_queue, init_email_queue
+from indico.core.notifications import flush_notification_queues, init_notification_queues
 from indico.legacy.services.interface.rpc import handlers
 from indico.util import fossilize
 
@@ -56,7 +56,7 @@ def _process_request(method, params):
 def invoke_method(method, params):
     result = None
     fossilize.clearCache()
-    init_email_queue()
+    init_notification_queues()
     try:
         result = _process_request(method, copy.deepcopy(params))
         signals.after_process.send()
@@ -67,5 +67,5 @@ def invoke_method(method, params):
     except Exception:
         db.session.rollback()
         raise
-    flush_email_queue()
+    flush_notification_queues()
     return result
