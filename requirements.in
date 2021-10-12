@@ -58,6 +58,7 @@ sqlalchemy
 terminaltables
 translitcodec
 ua-parser
+weasyprint
 webargs
 werkzeug
 wtforms[email]
