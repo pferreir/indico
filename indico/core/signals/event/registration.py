@@ -110,3 +110,9 @@ Executed after a registration form is cloned. The sender is the old ``Registrati
 object being cloned. The new ``RegistrationForm`` object is passed in the ``new_form``
 kwarg.
 ''')
+
+registrant_list_action_menu = _signals.signal('registrant-list-action-menu', '''
+Called when composing the list of menu items to be displayed under the "Actions" button
+at the top of the list of registrants/participants. The `sender` is the corresponding
+registration form.
+''')

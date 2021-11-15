@@ -7,6 +7,7 @@
 
 import csv
 import itertools
+from dataclasses import dataclass
 from operator import attrgetter
 
 from flask import current_app, json, session
@@ -47,6 +48,20 @@ from indico.util.spreadsheets import csv_text_io_wrapper, unique_col
 from indico.util.string import validate_email, validate_email_verbose
 from indico.web.forms.base import IndicoForm
 from indico.web.forms.widgets import SwitchWidget
+
+
+@dataclass
+class ActionMenuEntry:
+    type: str
+    icon_name: str
+    url: str
+    text: str
+    tooltip_text: str
+    weight: int = 0
+    requires_selected: bool = True
+    reload_page: bool = False
+    hide_if_locked: bool = False
+    extra_classes: str = ''
 
 
 def import_user_records_from_csv(fileobj, columns):
