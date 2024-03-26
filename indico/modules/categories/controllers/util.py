@@ -150,7 +150,7 @@ def get_category_view_params(category, now, is_flat=False):
     return {
         'event_count': len(events),
         'events_by_month': group_by_month(events, now, category.tzinfo),
-        'format_event_date': make_format_event_date_func(category),
+        'format_skeleton': lambda dt: format_skeleton(dt, 'ddMMM', timezone=category.tzinfo),
         'future_event_count': future_event_count,
         'show_future_events': show_future_events,
         'future_threshold': future_threshold.strftime(threshold_format),

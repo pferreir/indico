@@ -28,8 +28,7 @@ from indico.core.db import db
 from indico.core.db.sqlalchemy.util.queries import get_n_matching
 from indico.modules.categories.controllers.base import RHCategoryBase, RHDisplayCategoryBase
 from indico.modules.categories.controllers.util import (get_category_view_params, get_event_query_filter,
-                                                        group_by_month, make_format_event_date_func,
-                                                        make_happening_now_func, make_is_recent_func)
+                                                        group_by_month, make_happening_now_func, make_is_recent_func)
 from indico.modules.categories.models.categories import Category
 from indico.modules.categories.serialize import (serialize_categories_ical, serialize_category, serialize_category_atom,
                                                  serialize_category_chain)
@@ -43,7 +42,7 @@ from indico.modules.rb.models.locations import Location
 from indico.modules.users import User
 from indico.modules.users.models.favorites import favorite_category_table, favorite_event_table
 from indico.util.colors import generate_contrast_colors
-from indico.util.date_time import format_date, format_number, now_utc
+from indico.util.date_time import format_date, format_number, format_skeleton, now_utc
 from indico.util.decorators import classproperty
 from indico.util.fs import secure_filename
 from indico.util.i18n import _
@@ -315,7 +314,8 @@ class RHEventList(RHDisplayCategoryEventsBase):
     def _process(self):
         tpl = get_template_module('categories/display/event_list.html')
         html = tpl.event_list_block(events_by_month=group_by_month(self.events, self.now, self.category.tzinfo),
-                                    format_event_date=make_format_event_date_func(self.category),
+                                    format_skeleton=lambda dt: format_skeleton(
+                                        dt, 'ddMMM', timezone=self.category.tzinfo),
                                     is_recent=make_is_recent_func(self.now),
                                     happening_now=make_happening_now_func(self.now))
         return jsonify_data(flash=False, html=html)
